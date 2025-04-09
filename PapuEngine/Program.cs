@@ -31,7 +31,7 @@ public class Game() : GameWindow(GameWindowSettings.Default,
             new()
             {
                 Position = new Vector3(-0.125f, -0.05f, 0.0f),
-                TexCoord = new Vector2(1f, 1f),
+                TexCoord = new Vector2(0.5f, 0.75f),
             }
         ];
 
