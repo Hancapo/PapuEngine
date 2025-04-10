@@ -6,26 +6,34 @@ public class RenderableObject
 {
     private int _vbo;
     private int _vao;
-    private int _textureId;
-    public List<VertexData> Vertices;
-    private float[] _vertices => Vertices.SelectMany(v => v.Flatten()).ToArray();
+    public List<VertexData>? Vertices;
+    private float[]? _vertices => Vertices?.SelectMany(v => v.Flatten()).ToArray();
     private bool _isInitilized;
     private bool _rendered;
-    public string TexturePath;
-    public PrimitiveType PrimitiveType;
-    public PixelFormat PxFormat;
-    public TextureMinFilter MinFt;
-    public TextureMagFilter MagFt;
-    public bool RepeatTex;
+    private Texture? _texture;
+
+    public RenderableObject(List<VertexData>? vertices, Texture texture)
+    {
+        Vertices = vertices;
+        _texture = texture;
+    }
+
+    public int GetVbo()
+    {
+        return _vbo;
+    }
+    
+    public int GetVao()
+    {
+        return _vao;
+    }
 
     public void Initialize()
     {
-        _textureId = ImageHelper.LoadImage(TexturePath, RepeatTex, PxFormat, MinFt, MagFt);
-        
         //Load VBO
         GL.GenBuffers(1, out _vbo);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, _vertices!.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
         
         //Load VAO
         GL.GenVertexArrays(1, out _vao);
@@ -42,8 +50,14 @@ public class RenderableObject
         _isInitilized = true;
     }
 
-    public void Draw()
+    public void Draw(PrimitiveType primitiveType = PrimitiveType.Triangles)
     {
+        if (!_isInitilized)
+            throw new Exception("Object not initialized");
+        _texture?.Bind();
+        GL.BindVertexArray(_vao);   
+        int drawArraysCount = primitiveType == PrimitiveType.Triangles ? 3 : 4;
+        GL.DrawArrays(primitiveType, 0, drawArraysCount);
         _rendered = true;
     }
 }

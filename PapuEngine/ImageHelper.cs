@@ -8,8 +8,7 @@ namespace PapuEngine;
 
 public abstract class ImageHelper
 {
-    public static int LoadImage(string path, bool repeat, 
-        PixelFormat format = PixelFormat.Rgba, 
+    public static int LoadImage(string? path, bool repeat, 
         TextureMinFilter textureMinFilter = 
             TextureMinFilter.Linear, 
         TextureMagFilter textureMagFilter = TextureMagFilter.Linear)
@@ -32,10 +31,14 @@ public abstract class ImageHelper
             image.UnlockBits(data);
         }
         
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+        TextureWrapMode twm = repeat ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
+        TextureMinFilter tminf = TextureMinFilter.Linear == textureMinFilter ? TextureMinFilter.Linear : TextureMinFilter.Nearest;
+        TextureMagFilter tmf = TextureMagFilter.Linear == textureMagFilter ? TextureMagFilter.Linear : TextureMagFilter.Nearest;
+        
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)tminf);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)tmf);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)twm);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)twm);
         
         return textureId;
     }
