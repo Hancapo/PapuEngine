@@ -61,11 +61,6 @@ public class Game() : GameWindow(GameWindowSettings.Default,
 
     private Vector2 PointsCenter => new(PlayerGeom.Average(p => p.Position.X), PlayerGeom.Average(p => p.Position.Y));
 
-    string _vertexShader = File.ReadAllText("simple.vert");
-    string _fragmentShader = File.ReadAllText("simple.frag");
-
-    int _shaderProgram;
-
     private RenderableObject bg_render, player_render;
 
     private float _time;
@@ -74,10 +69,12 @@ public class Game() : GameWindow(GameWindowSettings.Default,
     private float aspect;
     private Vector2 input;
 
+    private Shader basicShader1;
+
     protected override void OnLoad()
     {
         base.OnLoad();
-        
+        ShaderManager.Load("basic_textured", "shaders/simple.vert", "shaders/simple.frag");
         bg_render = new RenderableObject(
             BackgroundQuad,
             new Texture("textures/Cave_01.png",
@@ -92,26 +89,10 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         aspect = Size.X / (float)Size.Y;
         player_render.Initialize();
         bg_render.Initialize();
-        //Create Shader
-        var vs = GL.CreateShader(ShaderType.VertexShader);
-        GL.ShaderSource(vs, _vertexShader);
-        GL.CompileShader(vs);
+        
+        basicShader1 = ShaderManager.Get("basic_textured");
+        basicShader1.SetUniform("tex", 0);
 
-        var fs = GL.CreateShader(ShaderType.FragmentShader);
-        GL.ShaderSource(fs, _fragmentShader);
-        GL.CompileShader(fs);
-
-        _shaderProgram = GL.CreateProgram();
-
-        GL.AttachShader(_shaderProgram, fs);
-        GL.AttachShader(_shaderProgram, vs);
-        GL.LinkProgram(_shaderProgram);
-
-        int texLocation = GL.GetUniformLocation(_shaderProgram, "tex");
-        GL.Uniform1(texLocation, 0);
-
-        GL.DeleteShader(vs);
-        GL.DeleteShader(fs);
 
         /* Siempre al llamar a VertexAttribPointer se debe tener:
          el VAO vinculado con GL.BindVertexArray
@@ -150,23 +131,19 @@ public class Game() : GameWindow(GameWindowSettings.Default,
     {
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        GL.UseProgram(_shaderProgram);
-        int offsetLocation = GL.GetUniformLocation(_shaderProgram, "offset");
-        int angleLocation = GL.GetUniformLocation(_shaderProgram, "angle");
-        int centerLocation = GL.GetUniformLocation(_shaderProgram, "center");
-        int aspectLocation = GL.GetUniformLocation(_shaderProgram, "aspect");
-        int distLocation = GL.GetUniformLocation(_shaderProgram, "dist");
-
-        GL.Uniform1(distLocation, 1.0f);
-        GL.Uniform2(offsetLocation, Vector2.Zero);
-        GL.Uniform1(angleLocation, 0f);
-        GL.Uniform2(centerLocation, Vector2.Zero);
+        
+        basicShader1.Use();
+        
+        basicShader1.SetUniform("dist", 1.0f);
+        basicShader1.SetUniform("offset", Vector2.Zero);
+        basicShader1.SetUniform("angle", 0.0f);
+        basicShader1.SetUniform("center", Vector2.Zero);
         bg_render.Draw(PrimitiveType.TriangleStrip);
 
-        GL.Uniform1(distLocation, 1.0f);
-        GL.Uniform1(aspectLocation, aspect);
-        GL.Uniform2(centerLocation, PointsCenter);
-        GL.Uniform2(offsetLocation, new Vector2(offset.X, offset.Y));
+        basicShader1.SetUniform("dist", 1.0f);
+        basicShader1.SetUniform("aspect", aspect);
+        basicShader1.SetUniform("center", PointsCenter);
+        basicShader1.SetUniform("offset", new Vector2(offset.X, offset.Y));
         player_render.Draw();
 
         SwapBuffers();
