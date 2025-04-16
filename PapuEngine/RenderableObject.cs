@@ -6,7 +6,7 @@ public class RenderableObject
 {
     private int _vbo;
     private int _vao;
-    public List<VertexData>? Vertices;
+    public List<VertexData> Vertices;
     private float[]? _vertices => Vertices?.SelectMany(v => v.Flatten()).ToArray();
     private bool _isInitilized;
     private bool _rendered;
@@ -46,19 +46,17 @@ public class RenderableObject
         //Read vertices UVs
         GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
         GL.EnableVertexAttribArray(1);
-
-        
         
         _isInitilized = true;
     }
 
-    public void Draw(int vertexCount, PrimitiveType primitiveType = PrimitiveType.Triangles)
+    public void Draw(PrimitiveType primitiveType = PrimitiveType.Triangles)
     {
         if (!_isInitilized)
             throw new Exception("Object not initialized");
         _texture?.Bind();
         GL.BindVertexArray(_vao);
-        GL.DrawArrays(primitiveType, 0, vertexCount);
+        GL.DrawArrays(primitiveType, 0, Vertices.Count);
         _rendered = true;
     }
 }
