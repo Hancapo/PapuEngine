@@ -59,92 +59,91 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         }
     ];
 
-    private Vector2 PointsCenter => new(PlayerGeom.Average(p => p.Position.X), PlayerGeom.Average(p => p.Position.Y));
+    private List<Entity> _sceneEntities = [];
 
-    private RenderableObject bg_render, player_render;
-
-    private float _time;
-    private Vector2 offset;
-    private float speed = 1f;
-    private float aspect;
-    private Vector2 input;
-
-    private Shader basicShader1;
+    private float _speed = 1f;
+    private float _aspect;
+    
+    private List<(string, string, string)> _shaderList = [
+        ("basic_textured", "shaders/basic_tex.vert", "shaders/basic_tex.frag")
+    ];
 
     protected override void OnLoad()
     {
         base.OnLoad();
-        ShaderManager.Load("basic_textured", "shaders/simple.vert", "shaders/simple.frag");
-        bg_render = new RenderableObject(
+        GL.ClearColor(0.8f, 0.3f, 0.2f, 1.0f);
+
+        foreach (var shader in _shaderList)
+        {
+            ShaderManager.Load(shader.Item1, shader.Item2, shader.Item3);
+        }
+        
+        var bgRender = new RenderableObject(
             BackgroundQuad,
             new Texture("textures/Cave_01.png",
                 true,
                 TextureMinFilter.Nearest,
-                TextureMagFilter.Nearest));
-        player_render = new RenderableObject(
+                TextureMagFilter.Nearest),
+            PrimitiveType.TriangleStrip);
+        
+        var playerRender = new RenderableObject(
             PlayerGeom,
             new Texture("textures/pearto.png"));
-    
-        GL.ClearColor(0.2f, 0.3f, 0.8f, 1.0f);
-        aspect = Size.X / (float)Size.Y;
-        player_render.Initialize();
-        bg_render.Initialize();
+
+        var playerEnt = new Entity
+        {
+            IsStatic = false,
+            Shader = ShaderManager.Get("basic_textured"),
+            RenderObj = playerRender,
+            Name = "Player1",
+            isControllable = true,
+            Scale = 1.0f
+        };
+
+        var backgroundEnt = new Entity
+        {
+            IsStatic = true,
+            Shader = ShaderManager.Get("basic_textured"),
+            RenderObj = bgRender,
+            Name = "SceneBG",
+            Scale = 1.0f
+        };
         
-        basicShader1 = ShaderManager.Get("basic_textured");
-        basicShader1.SetUniform("tex", 0);
-
-
-        /* Siempre al llamar a VertexAttribPointer se debe tener:
-         el VAO vinculado con GL.BindVertexArray
-         y el VBO vinculado con GL.BindArray*/
+        _sceneEntities.Add(backgroundEnt);
+        _sceneEntities.Add(playerEnt);
+        foreach (var entity in _sceneEntities)
+        {
+            entity.RenderObj.Initialize();
+        }
     }
 
     protected override void OnResize(ResizeEventArgs e)
     {
         base.OnResize(e);
         GL.Viewport(0, 0, Size.X, Size.Y);
+        _aspect = Size.X / (float)Size.Y;
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
-        _time += (float)args.Time;
-        var sin = MathF.Sin(_time);
-        var cos = MathF.Cos(_time);
-
-        input = Vector2.Zero;
-
-        if (KeyboardState.IsKeyDown(Keys.W)) input.Y += 1;
-        if (KeyboardState.IsKeyDown(Keys.S)) input.Y -= 1;
-        if (KeyboardState.IsKeyDown(Keys.D)) input.X += 1;
-        if (KeyboardState.IsKeyDown(Keys.A)) input.X -= 1;
-
-        if (input.LengthSquared > 0)
-        {
-            input = input.Normalized();
-        }
-
-        offset += input * speed * (float)args.Time;
+        var vel = Vector2.Zero;
+        if (KeyboardState.IsKeyDown(Keys.W)) vel.Y += _speed;
+        if (KeyboardState.IsKeyDown(Keys.S)) vel.Y -= _speed;
+        if (KeyboardState.IsKeyDown(Keys.A)) vel.X -= _speed;
+        if (KeyboardState.IsKeyDown(Keys.D)) vel.X += _speed;
+        _sceneEntities.Where(e => e.isControllable).ToList().ForEach(x => x.Update((float)args.Time, _speed, vel));
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
         base.OnRenderFrame(args);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        
-        basicShader1.Use();
-        
-        basicShader1.SetUniform("dist", 1.0f);
-        basicShader1.SetUniform("offset", Vector2.Zero);
-        basicShader1.SetUniform("angle", 0.0f);
-        basicShader1.SetUniform("center", Vector2.Zero);
-        bg_render.Draw(PrimitiveType.TriangleStrip);
 
-        basicShader1.SetUniform("dist", 1.0f);
-        basicShader1.SetUniform("aspect", aspect);
-        basicShader1.SetUniform("center", PointsCenter);
-        basicShader1.SetUniform("offset", new Vector2(offset.X, offset.Y));
-        player_render.Draw();
+        foreach (var entity in _sceneEntities)
+        {
+            entity.Render(_aspect);
+        }
 
         SwapBuffers();
     }

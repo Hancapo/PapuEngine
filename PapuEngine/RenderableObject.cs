@@ -1,22 +1,20 @@
 ﻿using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 
 namespace PapuEngine;
 
-public class RenderableObject
+public class RenderableObject(List<VertexData> vertices, Texture texture, PrimitiveType pt = PrimitiveType.Triangles)
 {
     private int _vbo;
     private int _vao;
-    public List<VertexData> Vertices;
-    private float[]? _vertices => Vertices?.SelectMany(v => v.Flatten()).ToArray();
+    public List<VertexData> Vertices = vertices;
+    private float[] _vertices => Vertices.SelectMany(v => v.Flatten()).ToArray();
     private bool _isInitilized;
     private bool _rendered;
-    private Texture? _texture;
-
-    public RenderableObject(List<VertexData>? vertices, Texture? texture)
-    {
-        Vertices = vertices;
-        _texture = texture;
-    }
+    private Texture _texture = texture;
+    private PrimitiveType _primitiveType = pt;
+    private Vector2 _center => new Vector2(Vertices.Average(p => p.Position.X), Vertices.Average(p => p.Position.Y));
+    public Vector2 Center => _center;
 
     public int GetVbo()
     {
@@ -50,13 +48,13 @@ public class RenderableObject
         _isInitilized = true;
     }
 
-    public void Draw(PrimitiveType primitiveType = PrimitiveType.Triangles)
+    public void Draw()
     {
         if (!_isInitilized)
             throw new Exception("Object not initialized");
-        _texture?.Bind();
+        _texture.Bind();
         GL.BindVertexArray(_vao);
-        GL.DrawArrays(primitiveType, 0, Vertices.Count);
+        GL.DrawArrays(_primitiveType, 0, Vertices.Count);
         _rendered = true;
     }
 }
