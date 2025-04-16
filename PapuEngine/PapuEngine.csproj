@@ -22,10 +22,10 @@
       <None Update="textures\Cave_01.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="shaders\simple.vert">
+      <None Update="shaders\basic_tex.vert">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="shaders\simple.frag">
+      <None Update="shaders\basic_tex.frag">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
