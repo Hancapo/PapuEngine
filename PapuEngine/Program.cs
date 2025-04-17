@@ -1,9 +1,12 @@
 ﻿using System.Drawing;
+using nkast.Aether.Physics2D.Collision.Shapes;
+using nkast.Aether.Physics2D.Dynamics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using PVector2 = nkast.Aether.Physics2D.Common.Vector2;
 
 namespace PapuEngine;
 
@@ -20,18 +23,23 @@ public class Game() : GameWindow(GameWindowSettings.Default,
     [
         new()
         {
-            Position = new Vector3(-0.25f, -0.25f, 0.0f),
+            Position = new Vector3(-0.1f, -0.1f, 0.0f),
             TexCoord = new Vector2(0f, 0f),
         },
         new()
         {
-            Position = new Vector3(0f, -0.25f, 0.0f),
+            Position = new Vector3(0.1f, -0.1f, 0.0f),
             TexCoord = new Vector2(1f, 0f),
         },
         new()
         {
-            Position = new Vector3(-0.125f, -0.05f, 0.0f),
-            TexCoord = new Vector2(0.5f, 0.75f),
+            Position = new Vector3(-0.1f, 0.1f, 0.0f),
+            TexCoord = new Vector2(0f, 1f),
+        },
+        new()
+        {
+            Position = new Vector3(0.1f, 0.1f, 0.0f),
+            TexCoord = new Vector2(1f, 1f),
         }
     ];
 
@@ -64,6 +72,8 @@ public class Game() : GameWindow(GameWindowSettings.Default,
     private float _speed = 1f;
     private float _aspect;
     
+    private World _physicsWorld = new World();
+    
     private List<(string, string, string)> _shaderList = [
         ("basic_textured", "shaders/basic_tex.vert", "shaders/basic_tex.frag")
     ];
@@ -72,7 +82,7 @@ public class Game() : GameWindow(GameWindowSettings.Default,
     {
         base.OnLoad();
         GL.ClearColor(0.8f, 0.3f, 0.2f, 1.0f);
-
+        _physicsWorld.Gravity = new PVector2(0);
         foreach (var shader in _shaderList)
         {
             ShaderManager.Load(shader.Item1, shader.Item2, shader.Item3);
@@ -88,17 +98,20 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         
         var playerRender = new RenderableObject(
             PlayerGeom,
-            new Texture("textures/pearto.png"));
+            new Texture("textures/pearto.png"),
+            PrimitiveType.TriangleStrip);
 
         var playerEnt = new Entity
         {
             IsStatic = false,
             Shader = ShaderManager.Get("basic_textured"),
             RenderObj = playerRender,
-            Name = "Player1",
+            Name = "Player1",   
             isControllable = true,
-            Scale = 1.0f
+            Scale = 1.0f,
+            physicsBody = _physicsWorld.CreateBody(new PVector2(-0f, -0.75f), default, BodyType.Dynamic),
         };
+        playerEnt.physicsBody.CreateFixture(new CircleShape(0.1f, 1f));
 
         var backgroundEnt = new Entity
         {
@@ -106,7 +119,8 @@ public class Game() : GameWindow(GameWindowSettings.Default,
             Shader = ShaderManager.Get("basic_textured"),
             RenderObj = bgRender,
             Name = "SceneBG",
-            Scale = 1.0f
+            Scale = 1.0f,
+            physicsBody = _physicsWorld.CreateBody(),
         };
         
         _sceneEntities.Add(backgroundEnt);
@@ -115,6 +129,11 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         {
             entity.RenderObj.Initialize();
         }
+    }
+
+    private static void CleanUnactiveEntities(List<Entity> entities)
+    {
+        entities.RemoveAll(e => !e.IsActive);
     }
 
     protected override void OnResize(ResizeEventArgs e)
@@ -133,6 +152,7 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         if (KeyboardState.IsKeyDown(Keys.A)) vel.X -= _speed;
         if (KeyboardState.IsKeyDown(Keys.D)) vel.X += _speed;
         _sceneEntities.Where(e => e.isControllable).ToList().ForEach(x => x.Update((float)args.Time, _speed, vel));
+        _physicsWorld.Step((float)args.Time);
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
@@ -143,7 +163,9 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         foreach (var entity in _sceneEntities)
         {
             entity.Render(_aspect);
+            Console.WriteLine("Physics Pos: " + entity.physicsBody.Position);
         }
+        CleanUnactiveEntities(_sceneEntities);
 
         SwapBuffers();
     }

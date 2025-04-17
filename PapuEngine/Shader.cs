@@ -1,5 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
+using PhyVector2 = nkast.Aether.Physics2D.Common.Vector2;
 
 namespace PapuEngine;
 
@@ -51,6 +52,13 @@ public class Shader
     {
         int location = GL.GetUniformLocation(_programId, name);
         GL.Uniform2(location, value);
+        _uniforms.TryAdd(name, location);
+    }
+
+    public void SetUniform(string name, PhyVector2 value)
+    {
+        int location = GL.GetUniformLocation(_programId, name);
+        GL.Uniform2(location, MiscHelper.ConvertVectorToTkVector(value));
         _uniforms.TryAdd(name, location);
     }
 
