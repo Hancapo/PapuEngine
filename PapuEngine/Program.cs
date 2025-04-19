@@ -185,9 +185,7 @@ public class Program
 
         vel = Vector2D<float>.Zero;
         var kb = input.Keyboards.FirstOrDefault();
-        if (kb.IsKeyPressed(Key.W))
-            if (kb.IsKeyPressed(Key.W))
-                vel.Y += _speed;
+        if (kb.IsKeyPressed(Key.W)) vel.Y += _speed;
         if (kb.IsKeyPressed(Key.S)) vel.Y -= _speed;
         if (kb.IsKeyPressed(Key.A)) vel.X -= _speed;
         if (kb.IsKeyPressed(Key.D)) vel.X += _speed;
