@@ -1,27 +1,30 @@
-﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
+﻿
+using System.Numerics;
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 
 namespace PapuEngine;
 
-public class RenderableObject(List<VertexData> vertices, Texture texture, PrimitiveType pt = PrimitiveType.Triangles)
+public class RenderableObject(List<VertexData> vertices, Texture texture, GL gl, PrimitiveType pt = PrimitiveType.Triangles)
 {
-    private int _vbo;
-    private int _vao;
+    private uint _vbo;
+    private uint _vao;
     public List<VertexData> Vertices = vertices;
-    private float[] _vertices => Vertices.SelectMany(v => v.Flatten()).ToArray();
+    private ReadOnlySpan<float> _vertices => Vertices.SelectMany(v => v.Flatten()).ToArray();
     private bool _isInitilized;
     private bool _rendered;
     private Texture _texture = texture;
     private PrimitiveType _primitiveType = pt;
-    private Vector2 _center => new Vector2(Vertices.Average(p => p.Position.X), Vertices.Average(p => p.Position.Y));
-    public Vector2 Center => _center;
+    private Vector2D<float> _center => new(Vertices.Average(p => p.Position.X), Vertices.Average(p => p.Position.Y));
+    public Vector2D<float> Center => _center;
+    private GL _gl = gl;
 
-    public int GetVbo()
+    public uint GetVbo()
     {
         return _vbo;
     }
     
-    public int GetVao()
+    public uint GetVao()
     {
         return _vao;
     }
@@ -29,21 +32,21 @@ public class RenderableObject(List<VertexData> vertices, Texture texture, Primit
     public void Initialize()
     {
         //Load VBO
-        GL.GenBuffers(1, out _vbo);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, _vertices!.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
+        _vbo = gl.GenBuffers(1);
+        gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
+        gl.BufferData(GLEnum.ArrayBuffer, _vertices, GLEnum.StaticDraw);
         
         //Load VAO
-        GL.GenVertexArrays(1, out _vao);
-        GL.BindVertexArray(_vao);
+        gl.GenVertexArrays(1, out _vao);
+        gl.BindVertexArray(_vao);
         
         //Read vertices position
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0); //Read first 3 floats as position.
-        GL.EnableVertexAttribArray(0);
+        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0); //Read first 3 floats as position.
+        gl.EnableVertexAttribArray(0);
         
         //Read vertices UVs
-        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
+        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
+        gl.EnableVertexAttribArray(1);
         
         _isInitilized = true;
     }
@@ -53,8 +56,8 @@ public class RenderableObject(List<VertexData> vertices, Texture texture, Primit
         if (!_isInitilized)
             throw new Exception("Object not initialized");
         _texture.Bind();
-        GL.BindVertexArray(_vao);
-        GL.DrawArrays(_primitiveType, 0, Vertices.Count);
+        gl.BindVertexArray(_vao);
+        gl.DrawArrays(_primitiveType, 0, (uint)Vertices.Count);
         _rendered = true;
     }
 }
