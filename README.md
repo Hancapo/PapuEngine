@@ -1,6 +1,6 @@
 # PapuEngine
 
-PapuEngine is a simple 2D game engine developed in C# using OpenTK and OpenGL. It is designed to provide a lightweight foundation for creating games/apps with hardware-accelerated graphics.
+PapuEngine is a simple 2D game engine developed in C# using Silk.NET and OpenGL. It is designed to provide a lightweight foundation for creating games/apps with hardware-accelerated graphics.
 
 
 ## Features
@@ -16,7 +16,7 @@ PapuEngine is a simple 2D game engine developed in C# using OpenTK and OpenGL. I
 ## Requirements
 
 - .NET 9.0
-- OpenTK (included as a dependency)
+- Silk.NET (included as a dependency)
 - a compatible OpenGL 4.6 GPU.
 
 ## Controls
