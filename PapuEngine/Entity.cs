@@ -1,7 +1,6 @@
-﻿using nkast.Aether.Physics2D.Dynamics;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+﻿using System.Numerics;
+using nkast.Aether.Physics2D.Dynamics;
+using Silk.NET.Maths;
 using PhyVector2 = nkast.Aether.Physics2D.Common.Vector2;
 
 
@@ -21,19 +20,21 @@ public class Entity
     public bool IsVisible = true;
     public Body physicsBody;
 
-    public void Update(float deltaTime, float speed, Vector2 vel)
+    public void Update(float speed, Vector2D<float> vel)
     {
         if (!isControllable || physicsBody == null) return;
-            
+        
+        var v = new PhyVector2(vel.X, vel.Y);
+        
         if (vel.LengthSquared > 0)
         {
-            physicsBody.LinearVelocity = MiscHelper.ConvertVectorToAetherVector(vel.Normalized()) * speed;
+            v.Normalize();
+            physicsBody.LinearVelocity = v * speed;
         }
         else
         {
             physicsBody.LinearVelocity = PhyVector2.Zero;
         }
-        
         
     }
 

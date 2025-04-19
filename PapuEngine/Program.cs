@@ -1,104 +1,134 @@
 ﻿using System.Drawing;
+using System.Numerics;
+using ImGuiNET;
 using nkast.Aether.Physics2D.Collision.Shapes;
 using nkast.Aether.Physics2D.Dynamics;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using Silk.NET.Input;
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using Silk.NET.OpenGL.Extensions.ImGui;
+using Silk.NET.Windowing;
 using PVector2 = nkast.Aether.Physics2D.Common.Vector2;
+using Window = Silk.NET.Windowing.Window;
 
 namespace PapuEngine;
 
-public class Game() : GameWindow(GameWindowSettings.Default,
-    new NativeWindowSettings
-    {
-        Title = "PapuEngine 2D",
-        API = ContextAPI.OpenGL,
-        APIVersion = new Version(4, 6),
-        ClientSize = new Vector2i(1280, 720),
-    })
+public class Program
 {
-    public List<VertexData> PlayerGeom =
+    private static IWindow window;
+    private static IInputContext input;
+    private static ImGuiController imGui;
+    private static GL _gl;
+
+    private static List<Entity> _sceneEntities = [];
+    public static float _speed = 1f;
+    public static Vector2D<float> vel = Vector2D<float>.Zero;
+    private static float _aspect;
+    private static World _physicsWorld = new();
+
+    private static List<(string, string, string)> _shaderList =
     [
-        new()
-        {
-            Position = new Vector3(-0.1f, -0.1f, 0.0f),
-            TexCoord = new Vector2(0f, 0f),
-        },
-        new()
-        {
-            Position = new Vector3(0.1f, -0.1f, 0.0f),
-            TexCoord = new Vector2(1f, 0f),
-        },
-        new()
-        {
-            Position = new Vector3(-0.1f, 0.1f, 0.0f),
-            TexCoord = new Vector2(0f, 1f),
-        },
-        new()
-        {
-            Position = new Vector3(0.1f, 0.1f, 0.0f),
-            TexCoord = new Vector2(1f, 1f),
-        }
-    ];
-
-    public List<VertexData> BackgroundQuad =
-    [
-        new()
-        {
-            Position = new Vector3(-4f, -1f, 0f),
-            TexCoord = new Vector2(0f, 0f),
-        },
-        new()
-        {
-            Position = new Vector3(4f, -1f, 0f),
-            TexCoord = new Vector2(4f, 0f),
-        },
-        new()
-        {
-            Position = new Vector3(-4f, 1f, 0f),
-            TexCoord = new Vector2(0f, 1f),
-        },
-        new()
-        {
-            Position = new Vector3(4f, 1f, 0f),
-            TexCoord = new Vector2(4f, 1f),
-        }
-    ];
-
-    private List<Entity> _sceneEntities = [];
-
-    private float _speed = 1f;
-    private float _aspect;
-    
-    private World _physicsWorld = new World();
-    
-    private List<(string, string, string)> _shaderList = [
         ("basic_textured", "shaders/basic_tex.vert", "shaders/basic_tex.frag")
     ];
 
-    protected override void OnLoad()
+    public static void Main(params string[] args)
     {
-        base.OnLoad();
-        GL.ClearColor(0.8f, 0.3f, 0.2f, 1.0f);
-        _physicsWorld.Gravity = new PVector2(0);
+        WindowOptions options = WindowOptions.Default;
+        options.Title = "PapuEngine 2D";
+        options.Size = new Vector2D<int>(1280, 720);
+        window = Window.Create(options);
+
+        window.Load += OnLoad;
+        window.Update += OnUpdateFrame;
+        window.Render += OnRenderFrame;
+        window.Resize += OnResize;
+
+        window.Run();
+    }
+
+
+    private static List<VertexData> _playerGeom =
+    [
+        new()
+        {
+            Position = new Vector3D<float>(-0.1f, -0.1f, 0.0f),
+            TexCoord = new Vector2D<float>(0f, 0f),
+        },
+        new()
+        {
+            Position = new Vector3D<float>(0.1f, -0.1f, 0.0f),
+            TexCoord = new Vector2D<float>(1f, 0f),
+        },
+        new()
+        {
+            Position = new Vector3D<float>(-0.1f, 0.1f, 0.0f),
+            TexCoord = new Vector2D<float>(0f, 1f),
+        },
+        new()
+        {
+            Position = new Vector3D<float>(0.1f, 0.1f, 0.0f),
+            TexCoord = new Vector2D<float>(1f, 1f),
+        }
+    ];
+
+    private static List<VertexData> _backgroundQuad =
+    [
+        new()
+        {
+            Position = new Vector3D<float>(-4f, -1f, 0f),
+            TexCoord = new Vector2D<float>(0f, 0f),
+        },
+        new()
+        {
+            Position = new Vector3D<float>(4f, -1f, 0f),
+            TexCoord = new Vector2D<float>(4f, 0f),
+        },
+        new()
+        {
+            Position = new Vector3D<float>(-4f, 1f, 0f),
+            TexCoord = new Vector2D<float>(0f, 1f),
+        },
+        new()
+        {
+            Position = new Vector3D<float>(4f, 1f, 0f),
+            TexCoord = new Vector2D<float>(4f, 1f),
+        }
+    ];
+
+
+    private static void OnLoad()
+    {
+        input = window.CreateInput();
+
+        _gl = window.CreateOpenGL();
+        imGui = new ImGuiController(_gl, window, input);
+        
+        ImGui.StyleColorsClassic();
+
+        _gl.ClearColor(Color.Aquamarine);
+        _aspect = (uint)window.Size.X / (float)(uint)window.Size.Y;
+
+        _physicsWorld.Gravity = PVector2.Zero;
+
+
         foreach (var shader in _shaderList)
         {
-            ShaderManager.Load(shader.Item1, shader.Item2, shader.Item3);
+            ShaderManager.Load(shader.Item1, shader.Item2, shader.Item3, _gl);
         }
-        
+
         var bgRender = new RenderableObject(
-            BackgroundQuad,
-            new Texture("textures/Cave_01.png",
+            _backgroundQuad,
+            new Texture("textures/Cave_01.png", _gl,
                 true,
                 TextureMinFilter.Nearest,
                 TextureMagFilter.Nearest),
+            _gl,
             PrimitiveType.TriangleStrip);
-        
+
         var playerRender = new RenderableObject(
-            PlayerGeom,
-            new Texture("textures/pearto.png"),
+            _playerGeom,
+            new Texture("textures/pearto.png", _gl),
+            _gl,
             PrimitiveType.TriangleStrip);
 
         var playerEnt = new Entity
@@ -106,12 +136,11 @@ public class Game() : GameWindow(GameWindowSettings.Default,
             IsStatic = false,
             Shader = ShaderManager.Get("basic_textured"),
             RenderObj = playerRender,
-            Name = "Player1",   
+            Name = "Player1",
             isControllable = true,
             Scale = 1.0f,
             physicsBody = _physicsWorld.CreateBody(new PVector2(-0f, -0.75f), default, BodyType.Dynamic),
         };
-        playerEnt.physicsBody.CreateFixture(new CircleShape(0.1f, 1f));
 
         var backgroundEnt = new Entity
         {
@@ -122,7 +151,9 @@ public class Game() : GameWindow(GameWindowSettings.Default,
             Scale = 1.0f,
             physicsBody = _physicsWorld.CreateBody(),
         };
-        
+
+        playerEnt.physicsBody.CreateFixture(new CircleShape(0.1f, 1f));
+
         _sceneEntities.Add(backgroundEnt);
         _sceneEntities.Add(playerEnt);
         foreach (var entity in _sceneEntities)
@@ -131,64 +162,81 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         }
     }
 
+    private static void OnKeyDown(IKeyboard keyboard, Key key, int keyCode)
+    {
+        if (key == Key.W) vel.Y += _speed;
+        if (key == Key.S) vel.Y -= _speed;
+        if (key == Key.A) vel.X -= _speed;
+        if (key == Key.D) vel.X += _speed;
+    }
+
+    private static void OnResize(Vector2D<int> obj)
+    {
+        _gl.Viewport(0, 0, (uint)window.Size.X, (uint)window.Size.Y);
+        _aspect = (uint)window.Size.X / (float)(uint)window.Size.Y;
+    }
+
     private static void CleanUnactiveEntities(List<Entity> entities)
     {
         entities.RemoveAll(e => !e.IsActive);
     }
 
-    protected override void OnResize(ResizeEventArgs e)
+    private static void OnUpdateFrame(double d)
     {
-        base.OnResize(e);
-        GL.Viewport(0, 0, Size.X, Size.Y);
-        _aspect = Size.X / (float)Size.Y;
+        imGui.Update((float)d);
+        _physicsWorld.Step((float)d);
+
+        vel = Vector2D<float>.Zero;
+        var kb = input.Keyboards.FirstOrDefault();
+        if (kb.IsKeyPressed(Key.W))
+            if (kb.IsKeyPressed(Key.W))
+                vel.Y += _speed;
+        if (kb.IsKeyPressed(Key.S)) vel.Y -= _speed;
+        if (kb.IsKeyPressed(Key.A)) vel.X -= _speed;
+        if (kb.IsKeyPressed(Key.D)) vel.X += _speed;
+
+        _sceneEntities.Where(e => e.isControllable).ToList().ForEach(x => x.Update(_speed, vel));
     }
 
-    private double _fpsTimer = 0;
-    private double _lastFps = 0;
-    protected override void OnUpdateFrame(FrameEventArgs args)
+    private static void OnRenderFrame(double d)
     {
-        base.OnUpdateFrame(args);
-        
-        _fpsTimer += args.Time;
-        if (_fpsTimer >= 0.4f)
-        {
-            _lastFps = 1.0 / args.Time;
-            Title = $"PapuEngine 2D - FPS: {double.Round(_lastFps)}";
-            _fpsTimer = 0;
-        }
-        
+        _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        
-        var vel = Vector2.Zero;
-        if (KeyboardState.IsKeyDown(Keys.W)) vel.Y += _speed;
-        if (KeyboardState.IsKeyDown(Keys.S)) vel.Y -= _speed;
-        if (KeyboardState.IsKeyDown(Keys.A)) vel.X -= _speed;
-        if (KeyboardState.IsKeyDown(Keys.D)) vel.X += _speed;
-        _sceneEntities.Where(e => e.isControllable).ToList().ForEach(x => x.Update((float)args.Time, _speed, vel));
-        _physicsWorld.Step((float)args.Time);
-        float fps = 1.0f / (float)args.Time;
-    }
-
-    protected override void OnRenderFrame(FrameEventArgs args)
-    {
-        base.OnRenderFrame(args);
-        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        ImGui.Begin("PapuEngine Debug Menu");
 
         foreach (var entity in _sceneEntities)
         {
             entity.Render(_aspect);
         }
+
+        if (ImGui.CollapsingHeader("Entities"))
+        {
+            ImGui.Indent(20f);
+            for (int i = 0; i < _sceneEntities.Count; i++)
+            {
+                ImGui.PushID(i);
+                var ent = _sceneEntities[i];
+                if (ImGui.CollapsingHeader(ent.Name))
+                {
+                    ImGui.Spacing();
+                    Vector2 pos = new Vector2(ent.physicsBody.Position.X, ent.physicsBody.Position.Y);
+                    if (ImGui.InputFloat2("Position", ref pos))
+                    {
+                        ent.physicsBody.Position = new PVector2(pos.X, pos.Y);
+                    }
+
+                    ImGui.Checkbox("Active (Disabling this will DESTROY the object)", ref ent.IsActive);
+                    ImGui.Checkbox("Visible", ref ent.IsVisible);
+                    ImGui.Checkbox("Static", ref ent.IsStatic);
+                    ImGui.InputFloat("Scale", ref ent.Scale);
+                    ImGui.Spacing();
+                }
+                ImGui.PopID();
+            }
+        }
+
         CleanUnactiveEntities(_sceneEntities);
-
-        SwapBuffers();
-    }
-}
-
-public abstract class Program
-{
-    public static void Main()
-    {
-        using var game = new Game();
-        game.Run();
+        ImGui.End();
+        imGui.Render();
     }
 }
