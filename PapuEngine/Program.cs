@@ -143,9 +143,22 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         _aspect = Size.X / (float)Size.Y;
     }
 
+    private double _fpsTimer = 0;
+    private double _lastFps = 0;
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
+        
+        _fpsTimer += args.Time;
+        if (_fpsTimer >= 0.4f)
+        {
+            _lastFps = 1.0 / args.Time;
+            Title = $"PapuEngine 2D - FPS: {double.Round(_lastFps)}";
+            _fpsTimer = 0;
+        }
+        
+
+        
         var vel = Vector2.Zero;
         if (KeyboardState.IsKeyDown(Keys.W)) vel.Y += _speed;
         if (KeyboardState.IsKeyDown(Keys.S)) vel.Y -= _speed;
@@ -153,6 +166,7 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         if (KeyboardState.IsKeyDown(Keys.D)) vel.X += _speed;
         _sceneEntities.Where(e => e.isControllable).ToList().ForEach(x => x.Update((float)args.Time, _speed, vel));
         _physicsWorld.Step((float)args.Time);
+        float fps = 1.0f / (float)args.Time;
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
@@ -163,7 +177,6 @@ public class Game() : GameWindow(GameWindowSettings.Default,
         foreach (var entity in _sceneEntities)
         {
             entity.Render(_aspect);
-            Console.WriteLine("Physics Pos: " + entity.physicsBody.Position);
         }
         CleanUnactiveEntities(_sceneEntities);
 
