@@ -164,10 +164,7 @@ public class Program
 
     private static void OnKeyDown(IKeyboard keyboard, Key key, int keyCode)
     {
-        if (key == Key.W) vel.Y += _speed;
-        if (key == Key.S) vel.Y -= _speed;
-        if (key == Key.A) vel.X -= _speed;
-        if (key == Key.D) vel.X += _speed;
+
     }
 
     private static void OnResize(Vector2D<int> obj)
