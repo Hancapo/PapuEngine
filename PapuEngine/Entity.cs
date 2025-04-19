@@ -43,7 +43,7 @@ public class Entity
         if (!IsVisible) return;
         Shader.Use();
         Shader.SetUniform("dist", Scale);
-        Shader.SetUniform("angle", Rotation);
+        Shader.SetUniform("angle", physicsBody.Rotation);
         Shader.SetUniform("aspect", aspect);
         Shader.SetUniform("center", RenderObj.Center);
         Shader.SetUniform("offset", physicsBody.Position);
