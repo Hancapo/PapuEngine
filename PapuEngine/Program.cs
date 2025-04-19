@@ -110,7 +110,6 @@ public class Program
 
         _physicsWorld.Gravity = PVector2.Zero;
 
-
         foreach (var shader in _shaderList)
         {
             ShaderManager.Load(shader.Item1, shader.Item2, shader.Item3, _gl);
@@ -156,6 +155,7 @@ public class Program
 
         _sceneEntities.Add(backgroundEnt);
         _sceneEntities.Add(playerEnt);
+
         foreach (var entity in _sceneEntities)
         {
             entity.RenderObj.Initialize();
@@ -197,11 +197,9 @@ public class Program
     {
         _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        ImGui.Begin("PapuEngine Debug Menu");
-
-        foreach (var entity in _sceneEntities)
+        foreach (var t in _sceneEntities)
         {
-            entity.Render(_aspect);
+            t.Render(_aspect);
         }
 
         if (ImGui.CollapsingHeader("Entities"))
@@ -215,15 +213,23 @@ public class Program
                 {
                     ImGui.Spacing();
                     Vector2 pos = new Vector2(ent.physicsBody.Position.X, ent.physicsBody.Position.Y);
+                    float rot = ent.physicsBody.Rotation * (180f / MathF.PI);
                     if (ImGui.InputFloat2("Position", ref pos))
                     {
                         ent.physicsBody.Position = new PVector2(pos.X, pos.Y);
                     }
-
-                    ImGui.Checkbox("Active (Disabling this will DESTROY the object)", ref ent.IsActive);
+                    
+                    ImGui.BeginDisabled();
+                    ImGui.Checkbox("Active", ref ent.IsActive);
+                    ImGui.EndDisabled();
                     ImGui.Checkbox("Visible", ref ent.IsVisible);
                     ImGui.Checkbox("Static", ref ent.IsStatic);
+                    if (ImGui.InputFloat("Rotation", ref rot))
+                    {
+                        ent.physicsBody.Rotation = rot * (MathF.PI / 180f);
+                    }
                     ImGui.InputFloat("Scale", ref ent.Scale);
+                    if (ImGui.Button("Destroy")) _sceneEntities[i].IsActive = false;
                     ImGui.Spacing();
                 }
                 ImGui.PopID();
