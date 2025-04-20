@@ -14,7 +14,6 @@ public class Entity
     public float Scale = 1f;
     public string Name = "Entity";
     public bool IsActive = true;
-    public bool IsStatic = false;
     public bool isControllable = false;
     public bool isCollidable = false;
     public bool IsVisible = true;
