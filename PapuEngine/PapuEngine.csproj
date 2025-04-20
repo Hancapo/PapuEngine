@@ -28,18 +28,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="textures\pearto.png">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="textures\Cave_01.png">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="shaders\basic_tex.vert">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="shaders\basic_tex.frag">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="assets\textures\Cave_01.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
