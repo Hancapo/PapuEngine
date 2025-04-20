@@ -3,7 +3,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace PapuEngine;
+namespace PapuEngine.source.graphics;
 
 public class Texture(
     string path,

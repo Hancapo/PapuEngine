@@ -1,21 +1,20 @@
-﻿using System.Numerics;
-using nkast.Aether.Physics2D.Dynamics;
+﻿using nkast.Aether.Physics2D.Dynamics;
+using PapuEngine.source.core.components;
+using PapuEngine.source.graphics;
 using Silk.NET.Maths;
 using PhyVector2 = nkast.Aether.Physics2D.Common.Vector2;
 
 
-namespace PapuEngine;
+namespace PapuEngine.source.core.@base;
 
 public class Entity
 {
     public RenderableObject RenderObj;
     public Shader Shader;
-    public float Rotation = 0f;
     public float Scale = 1f;
     public string Name = "Entity";
     public bool IsActive = true;
     public bool isControllable = false;
-    public bool isCollidable = false;
     public bool IsVisible = true;
     public Body physicsBody;
 

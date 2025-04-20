@@ -3,12 +3,16 @@ using System.Numerics;
 using ImGuiNET;
 using nkast.Aether.Physics2D.Collision.Shapes;
 using nkast.Aether.Physics2D.Dynamics;
+using PapuEngine.source.core.@base;
+using PapuEngine.source.core.components;
+using PapuEngine.source.graphics;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 using PVector2 = nkast.Aether.Physics2D.Common.Vector2;
+using Texture = PapuEngine.source.graphics.Texture;
 using Window = Silk.NET.Windowing.Window;
 
 namespace PapuEngine;
@@ -25,10 +29,13 @@ public class Program
     public static Vector2D<float> vel = Vector2D<float>.Zero;
     private static float _aspect;
     private static World _physicsWorld = new();
+    
+    private static string shadersPath = "assets/shaders/";
+    private static string texturesPath = "assets/textures/";
 
     private static List<(string, string, string)> _shaderList =
     [
-        ("basic_textured", "shaders/basic_tex.vert", "shaders/basic_tex.frag")
+        ("basic_textured", $"{shadersPath}basic_tex.vert", $"{shadersPath}basic_tex.frag")
     ];
 
     public static void Main(params string[] args)
@@ -117,7 +124,7 @@ public class Program
 
         var bgRender = new RenderableObject(
             _backgroundQuad,
-            new Texture("textures/Cave_01.png", _gl,
+            new Texture($"{texturesPath}Cave_01.png", _gl,
                 true,
                 false,
                 TextureMinFilter.Nearest,
@@ -127,7 +134,7 @@ public class Program
 
         var playerRender = new RenderableObject(
             _playerGeom,
-            new Texture("textures/pearto.png", _gl, default, true),
+            new Texture($"{texturesPath}pearto.png", _gl, default, true),
             _gl,
             PrimitiveType.TriangleStrip);
 

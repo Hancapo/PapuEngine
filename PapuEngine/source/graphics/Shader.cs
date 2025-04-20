@@ -1,10 +1,10 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
+using PapuEngine.source.core.utils;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using PhyVector2 = nkast.Aether.Physics2D.Common.Vector2;
 
-namespace PapuEngine;
+namespace PapuEngine.source.graphics;
 
 public class Shader
 {

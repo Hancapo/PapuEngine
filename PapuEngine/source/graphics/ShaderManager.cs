@@ -1,6 +1,6 @@
 ﻿using Silk.NET.OpenGL;
 
-namespace PapuEngine;
+namespace PapuEngine.source.graphics;
 
 public abstract class ShaderManager
 {

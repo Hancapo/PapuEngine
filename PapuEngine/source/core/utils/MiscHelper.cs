@@ -4,7 +4,7 @@ using Silk.NET.Maths;
 using PhyVector2 = nkast.Aether.Physics2D.Common.Vector2;
 using PhyVector3 = nkast.Aether.Physics2D.Common.Vector3;
 
-namespace PapuEngine;
+namespace PapuEngine.source.core.utils;
 
 public static class MiscHelper
 {

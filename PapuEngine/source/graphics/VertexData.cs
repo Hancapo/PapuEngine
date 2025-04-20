@@ -1,7 +1,7 @@
 ﻿
 using Silk.NET.Maths;
 
-namespace PapuEngine;
+namespace PapuEngine.source.graphics;
 
 public struct VertexData
 {

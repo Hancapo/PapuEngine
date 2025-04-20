@@ -1,9 +1,9 @@
-﻿
-using System.Numerics;
+﻿using PapuEngine.source.graphics;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
+using Texture = PapuEngine.source.graphics.Texture;
 
-namespace PapuEngine;
+namespace PapuEngine.source.core.components;
 
 public class RenderableObject(List<VertexData> vertices, Texture texture, GL gl, PrimitiveType pt = PrimitiveType.Triangles)
 {
