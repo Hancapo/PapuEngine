@@ -75,23 +75,23 @@ public class Program
     [
         new()
         {
-            Position = new Vector3D<float>(-4f, -1f, 0f),
+            Position = new Vector3D<float>(-40f, -1f, 0f),
             TexCoord = new Vector2D<float>(0f, 0f),
         },
         new()
         {
-            Position = new Vector3D<float>(4f, -1f, 0f),
-            TexCoord = new Vector2D<float>(4f, 0f),
+            Position = new Vector3D<float>(40f, -1f, 0f),
+            TexCoord = new Vector2D<float>(40f, 0f),
         },
         new()
         {
-            Position = new Vector3D<float>(-4f, 1f, 0f),
+            Position = new Vector3D<float>(-40f, 1f, 0f),
             TexCoord = new Vector2D<float>(0f, 1f),
         },
         new()
         {
-            Position = new Vector3D<float>(4f, 1f, 0f),
-            TexCoord = new Vector2D<float>(4f, 1f),
+            Position = new Vector3D<float>(40f, 1f, 0f),
+            TexCoord = new Vector2D<float>(40f, 1f),
         }
     ];
 
@@ -119,6 +119,7 @@ public class Program
             _backgroundQuad,
             new Texture("textures/Cave_01.png", _gl,
                 true,
+                false,
                 TextureMinFilter.Nearest,
                 TextureMagFilter.Nearest),
             _gl,
@@ -126,13 +127,12 @@ public class Program
 
         var playerRender = new RenderableObject(
             _playerGeom,
-            new Texture("textures/pearto.png", _gl),
+            new Texture("textures/pearto.png", _gl, default, true),
             _gl,
             PrimitiveType.TriangleStrip);
 
         var playerEnt = new Entity
         {
-            IsStatic = false,
             Shader = ShaderManager.Get("basic_textured"),
             RenderObj = playerRender,
             Name = "Player1",
@@ -143,7 +143,6 @@ public class Program
 
         var backgroundEnt = new Entity
         {
-            IsStatic = true,
             Shader = ShaderManager.Get("basic_textured"),
             RenderObj = bgRender,
             Name = "SceneBG",
@@ -223,7 +222,6 @@ public class Program
                     ImGui.Checkbox("Active", ref ent.IsActive);
                     ImGui.EndDisabled();
                     ImGui.Checkbox("Visible", ref ent.IsVisible);
-                    ImGui.Checkbox("Static", ref ent.IsStatic);
                     if (ImGui.InputFloat("Rotation", ref rot))
                     {
                         ent.physicsBody.Rotation = rot * (MathF.PI / 180f);
@@ -235,7 +233,6 @@ public class Program
                 ImGui.PopID();
             }
         }
-
         CleanUnactiveEntities(_sceneEntities);
         ImGui.End();
         imGui.Render();
