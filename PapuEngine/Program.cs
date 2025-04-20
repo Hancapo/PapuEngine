@@ -26,12 +26,12 @@ public class Program
 
     private static List<Entity> _sceneEntities = [];
     public static float _speed = 1f;
-    
+
     private static bool canPressSpace = true;
     private static bool spaceWasPressed = false;
     private static float cooldownTimer = 0f;
 
-    
+
     public static Vector2D<float> vel = Vector2D<float>.Zero;
     private static float _aspect;
     private static World _physicsWorld = new();
@@ -195,14 +195,13 @@ public class Program
         if (!canPressSpace)
         {
             cooldownTimer -= fDeltaTime;
-            if(cooldownTimer <= 0)
+            if (cooldownTimer <= 0)
             {
                 canPressSpace = true;
             }
         }
 
-        
-        
+
         imGui.Update(fDeltaTime);
         _physicsWorld.Step(fDeltaTime);
 
@@ -258,7 +257,10 @@ public class Program
                     {
                         ent.physicsBody.Rotation = rot * (MathF.PI / 180f);
                     }
-
+                    
+                    if(ent.isControllable)
+                        ImGui.InputFloat("Speed", ref _speed, 0.0f, 100f);
+                        
                     ImGui.InputFloat("Scale", ref ent.Scale);
                     if (ImGui.Button("Destroy")) _sceneEntities[i].IsActive = false;
                     ImGui.Spacing();
@@ -267,7 +269,6 @@ public class Program
                 ImGui.PopID();
             }
         }
-
         CleanUnactiveEntities(_sceneEntities);
         ImGui.End();
         imGui.Render();
