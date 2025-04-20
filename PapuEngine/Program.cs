@@ -26,10 +26,17 @@ public class Program
 
     private static List<Entity> _sceneEntities = [];
     public static float _speed = 1f;
+    
+    private static bool canPressSpace = true;
+    private static bool spaceWasPressed = false;
+    private static float cooldownTimer = 0f;
+
+    
     public static Vector2D<float> vel = Vector2D<float>.Zero;
     private static float _aspect;
     private static World _physicsWorld = new();
-    
+
+
     private static string shadersPath = "assets/shaders/";
     private static string texturesPath = "assets/textures/";
 
@@ -49,6 +56,7 @@ public class Program
         window.Update += OnUpdateFrame;
         window.Render += OnRenderFrame;
         window.Resize += OnResize;
+        window.Closing += OnClosing;
 
         window.Run();
     }
@@ -102,6 +110,11 @@ public class Program
         }
     ];
 
+    private static void CleanUnactiveEntities(List<Entity> entities)
+    {
+        entities.RemoveAll(e => !e.IsActive);
+    }
+
 
     private static void OnLoad()
     {
@@ -109,7 +122,7 @@ public class Program
 
         _gl = window.CreateOpenGL();
         imGui = new ImGuiController(_gl, window, input);
-        
+
         ImGui.StyleColorsClassic();
 
         _gl.ClearColor(Color.Aquamarine);
@@ -134,7 +147,7 @@ public class Program
 
         var playerRender = new RenderableObject(
             _playerGeom,
-            new Texture($"{texturesPath}pearto.png", _gl, default, true),
+            new Texture($"{texturesPath}pearto.png", _gl, false, true),
             _gl,
             PrimitiveType.TriangleStrip);
 
@@ -168,33 +181,45 @@ public class Program
         }
     }
 
-    private static void OnKeyDown(IKeyboard keyboard, Key key, int keyCode)
-    {
-
-    }
-
     private static void OnResize(Vector2D<int> obj)
     {
         _gl.Viewport(0, 0, (uint)window.Size.X, (uint)window.Size.Y);
         _aspect = (uint)window.Size.X / (float)(uint)window.Size.Y;
     }
 
-    private static void CleanUnactiveEntities(List<Entity> entities)
-    {
-        entities.RemoveAll(e => !e.IsActive);
-    }
 
-    private static void OnUpdateFrame(double d)
+    private static void OnUpdateFrame(double deltaTime)
     {
-        imGui.Update((float)d);
-        _physicsWorld.Step((float)d);
+        var fDeltaTime = (float)deltaTime;
+
+        if (!canPressSpace)
+        {
+            cooldownTimer -= fDeltaTime;
+            if(cooldownTimer <= 0)
+            {
+                canPressSpace = true;
+            }
+        }
+
+        
+        
+        imGui.Update(fDeltaTime);
+        _physicsWorld.Step(fDeltaTime);
 
         vel = Vector2D<float>.Zero;
-        var kb = input.Keyboards.FirstOrDefault();
+        IKeyboard kb = input.Keyboards.FirstOrDefault();
         if (kb.IsKeyPressed(Key.W)) vel.Y += _speed;
         if (kb.IsKeyPressed(Key.S)) vel.Y -= _speed;
         if (kb.IsKeyPressed(Key.A)) vel.X -= _speed;
         if (kb.IsKeyPressed(Key.D)) vel.X += _speed;
+
+        if (kb.IsKeyPressed(Key.Space) && canPressSpace)
+        {
+            Console.WriteLine("Space was pressed");
+            canPressSpace = false;
+            cooldownTimer = 0.5f;
+        }
+
 
         _sceneEntities.Where(e => e.isControllable).ToList().ForEach(x => x.Update(_speed, vel));
     }
@@ -224,7 +249,7 @@ public class Program
                     {
                         ent.physicsBody.Position = new PVector2(pos.X, pos.Y);
                     }
-                    
+
                     ImGui.BeginDisabled();
                     ImGui.Checkbox("Active", ref ent.IsActive);
                     ImGui.EndDisabled();
@@ -233,15 +258,22 @@ public class Program
                     {
                         ent.physicsBody.Rotation = rot * (MathF.PI / 180f);
                     }
+
                     ImGui.InputFloat("Scale", ref ent.Scale);
                     if (ImGui.Button("Destroy")) _sceneEntities[i].IsActive = false;
                     ImGui.Spacing();
                 }
+
                 ImGui.PopID();
             }
         }
+
         CleanUnactiveEntities(_sceneEntities);
         ImGui.End();
         imGui.Render();
+    }
+
+    private static void OnClosing()
+    {
     }
 }
