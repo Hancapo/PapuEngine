@@ -9,6 +9,7 @@ public class Texture(
     string path,
     GL _gl,
     bool repeat = false,
+    bool transparent = false,
     TextureMinFilter min = TextureMinFilter.Linear,
     TextureMagFilter mag = TextureMagFilter.Linear)
 {
@@ -31,6 +32,9 @@ public class Texture(
     {
         var textureId = gl.GenTexture();
         gl.BindTexture(TextureTarget.Texture2D, textureId);
+        if (transparent)
+            gl.Enable(GLEnum.Blend);
+            gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         if (path != null)
         {
