@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using nkast.Aether.Physics2D.Common.PhysicsLogic;
 using nkast.Aether.Physics2D.Dynamics;
 using PapuEngine.source.core.@base;
 using PapuEngine.source.core.components;
@@ -20,14 +21,14 @@ public sealed class Player : BaseEntity
     private float _cooldownTimer = 0f;
     private List<BaseEntity> _entities;
     
-    public float Speed = 1f;
-    public override Shader Shader => ShaderManager.Get("basic_textured");
-    public override string Name => "Player1";
+    public float Speed = 1.5f;
+    public float BulletCooldown = 0.05f;
 
     private Vector2D<float> _vel = Vector2D<float>.Zero;
 
     public override void Update(float deltaTime)
     {
+        
         if (!_canPressSpace)
         {
             _cooldownTimer -= deltaTime;
@@ -62,7 +63,7 @@ public sealed class Player : BaseEntity
             Bullet bullet = new Bullet(GLContext, PhysicsWorld, Aspect, this);
             _entities.Add(bullet);
             _canPressSpace   = false;
-            _cooldownTimer   = 0.2f;
+            _cooldownTimer = BulletCooldown;
         }
     }
 
@@ -72,9 +73,11 @@ public sealed class Player : BaseEntity
         Aspect = aspect;
         _kb = kb;
         IsVisible = true;
+        Shader = ShaderManager.Get("basic_textured");
         Scale = 1.0f;
         GLContext = glContext;
         _entities = entities;
+        Name = "Player1";
         PhysicsBody = PhysicsWorld.CreateCircle(
             radius: 0.01f, density: 0.01f,
             position: new PhyVector2(0, -0.75f), BodyType.Dynamic
@@ -88,7 +91,6 @@ public sealed class Player : BaseEntity
             PrimitiveType.TriangleStrip
         );
 
-        PhysicsBody.IgnoreGravity = true;
     }
 
     public override void Render(float deltaTime, float aspect)
