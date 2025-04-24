@@ -15,14 +15,14 @@ public class RenderableObject
     private bool _rendered { get; set; }
     private Texture _texture;
     private PrimitiveType _primitiveType;
-    private Vector2D<float> _center => new(Vertices.Average(p => p.Position.X), Vertices.Average(p => p.Position.Y));
-    public Vector2D<float> Center => _center;
+    public Vector2D<float> Center { get; set; }
     private GL _gl;
 
     public RenderableObject(GL gl, List<VertexData> vertices, Texture texture,
         PrimitiveType pt = PrimitiveType.Triangles)
     {
         Vertices = vertices;
+        Center = new Vector2D<float>(Vertices.Average(p => p.Position.X), Vertices.Average(p => p.Position.Y));
         _texture = texture;
         _primitiveType = pt;
         _gl = gl;
