@@ -12,7 +12,7 @@ public abstract class BaseEntity
     public virtual Shader Shader { get;set; }
     public virtual string Name { get; set; }
     public virtual bool IsVisible { get; set; }
-    public virtual Body physicsBody { get; set; }
+    public virtual Body PhysicsBody { get; set; }
 
     public virtual World PhysicsWorld { get; set; }
     public virtual float Scale { get; set; }
