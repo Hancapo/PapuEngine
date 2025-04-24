@@ -1,4 +1,5 @@
 ﻿#version 460 core
+
 in vec2 fragUV;
 out vec4 frag_colour;
 
@@ -7,7 +8,7 @@ uniform float iTime;
 uniform float iSpeed;
 
 void main() {
-    fragUV.y += iTime * iSpeed;
-    fragUV = fract(fragUV);
-    frag_colour = texture(tex, fragUV);
+    vec2 test = fragUV;
+    test.y = fract(fragUV.y + iTime * iSpeed);
+    frag_colour = texture(tex, test);
 }
