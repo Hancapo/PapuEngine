@@ -15,26 +15,23 @@ public sealed class AnimatedBackground : BaseEntity
 {
     private readonly Body _physicsBody;
     private readonly RenderableObject _ro;
-    public float _aspect;
 
     public override Vector2D<float> UvOffset { get; set; }
 
-    public override Shader Shader { get; set; }
-
     public override Body physicsBody => _physicsBody;
     
-    public override float Aspect => _aspect;
-    public override string Name { get; set; }
-
     public override RenderableObject Ro => _ro;
     
     public AnimatedBackground(GL glContext, World physicsWorld, float aspect)
     {
         PhysicsWorld = physicsWorld;
-        _aspect = aspect;
+        Aspect = aspect;
+        IsVisible = true;
+        Scale = 1.0f;
         GLContext = glContext;
         Shader = ShaderManager.Get("basic_textured");
         Name = "Background";
+        Scale = 1.0f;
         
         _ro = new RenderableObject(
             GLContext,
@@ -60,10 +57,11 @@ public sealed class AnimatedBackground : BaseEntity
     public override void Render(float deltaTime, float aspect)
     {
         if (!IsVisible) return;
+        Aspect = aspect;
         Shader.Use();
         Shader.SetUniform("dist", Scale);
         Shader.SetUniform("angle", physicsBody.Rotation);
-        Shader.SetUniform("aspect", aspect);
+        Shader.SetUniform("aspect", Aspect);
         Shader.SetUniform("center", Ro.Center);
         Shader.SetUniform("offset", physicsBody.Position);
         //Shader.SetUniform("iTime", deltaTime);
