@@ -19,7 +19,6 @@ public sealed class Player : BaseEntity
     private readonly Body _physicsBody;
     private readonly RenderableObject _ro;
     public IKeyboard _kb;
-    public bool _isvisible;
     private bool _canPressSpace = true;
     private float _cooldownTimer = 0f;
     
