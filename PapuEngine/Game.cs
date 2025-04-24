@@ -106,7 +106,7 @@ public class Game
 
         foreach (var ent in _sceneEntities)
         {
-            ent.Render((float)d, _aspect);
+            ent.Render((float)window.Time, _aspect);
         }
 
         if (ImGui.CollapsingHeader("Entities"))
