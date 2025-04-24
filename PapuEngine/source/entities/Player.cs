@@ -15,20 +15,16 @@ namespace PapuEngine.source.entities;
 
 public sealed class Player : BaseEntity
 {
-    
-    private readonly Body _physicsBody;
-    private readonly RenderableObject _ro;
-    public IKeyboard _kb;
+    private IKeyboard _kb;
     private bool _canPressSpace = true;
     private float _cooldownTimer = 0f;
+    private List<BaseEntity> _entities;
     
     public float Speed = 1f;
     public override Shader Shader => ShaderManager.Get("basic_textured");
     public override string Name => "Player1";
-    public override Body physicsBody => _physicsBody;
-    public override RenderableObject Ro => _ro;
 
-    public Vector2D<float> Vel = Vector2D<float>.Zero;
+    private Vector2D<float> _vel = Vector2D<float>.Zero;
 
     public override void Update(float deltaTime)
     {
@@ -40,35 +36,37 @@ public sealed class Player : BaseEntity
         }
         
         
-        var v = new PhyVector2(Vel.X, Vel.Y);
+        var v = new PhyVector2(_vel.X, _vel.Y);
         
-        if (Vel.LengthSquared > 0)
+        if (_vel.LengthSquared > 0)
         {
             v.Normalize();
-            physicsBody.LinearVelocity = v * Speed;
+            PhysicsBody.LinearVelocity = v * Speed;
         }
         else
         {
-            physicsBody.LinearVelocity = PhyVector2.Zero;
+            PhysicsBody.LinearVelocity = PhyVector2.Zero;
         }
         
-        Vel = Vector2D<float>.Zero;
+        _vel = Vector2D<float>.Zero;
         
-        if (_kb.IsKeyPressed(Key.W)) Vel.Y += Speed;
-        if (_kb.IsKeyPressed(Key.S)) Vel.Y -= Speed;
-        if (_kb.IsKeyPressed(Key.A)) Vel.X -= Speed;
-        if (_kb.IsKeyPressed(Key.D)) Vel.X += Speed;
+        if (_kb.IsKeyPressed(Key.W)) _vel.Y += Speed;
+        if (_kb.IsKeyPressed(Key.S)) _vel.Y -= Speed;
+        if (_kb.IsKeyPressed(Key.A)) _vel.X -= Speed;
+        if (_kb.IsKeyPressed(Key.D)) _vel.X += Speed;
         
         if (_kb.IsKeyPressed(Key.Space) && _canPressSpace)
         {
-            Console.WriteLine("Space was pressed");
+            AudioPlayer ap = new("assets/sounds/sfx_weapon_singleshot1.wav");
+            ap.Play();
+            Bullet bullet = new Bullet(GLContext, PhysicsWorld, Aspect, this);
+            _entities.Add(bullet);
             _canPressSpace   = false;
-            _cooldownTimer   = 0.5f;
-            // tu lógica de disparo aquí
+            _cooldownTimer   = 0.2f;
         }
     }
 
-    public Player(GL glContext, World physicsWorld, float aspect, IKeyboard kb)
+    public Player(GL glContext, World physicsWorld, float aspect, IKeyboard kb, ref List<BaseEntity> entities)
     {
         PhysicsWorld = physicsWorld;
         Aspect = aspect;
@@ -76,21 +74,21 @@ public sealed class Player : BaseEntity
         IsVisible = true;
         Scale = 1.0f;
         GLContext = glContext;
-        _physicsBody = PhysicsWorld.CreateRectangle(
-            width: 0.1f, height: 0.1f, density: 1f,
-            position: new PhyVector2(0, -0.75f),
-            rotation: 0, BodyType.Dynamic
+        _entities = entities;
+        PhysicsBody = PhysicsWorld.CreateCircle(
+            radius: 0.01f, density: 0.01f,
+            position: new PhyVector2(0, -0.75f), BodyType.Dynamic
         );
-        
-        var tex = new Texture(glContext, "assets/textures/mainship_base.png",
-            repeat: false, transparent: true,
-            min: TextureMinFilter.Nearest,
-            mag: TextureMagFilter.Nearest);
-        _ro = new RenderableObject(glContext,
+        Ro = new RenderableObject(glContext,
             GeomHelper.Create2DBox(0.1f),
-            tex,
+            new Texture(glContext, "assets/textures/mainship_base.png",
+                repeat: false, transparent: true,
+                min: TextureMinFilter.Nearest,
+                mag: TextureMagFilter.Nearest),
             PrimitiveType.TriangleStrip
         );
+
+        PhysicsBody.IgnoreGravity = true;
     }
 
     public override void Render(float deltaTime, float aspect)
@@ -99,10 +97,10 @@ public sealed class Player : BaseEntity
         Aspect = aspect;
         Shader.Use();
         Shader.SetUniform("dist", Scale);
-        Shader.SetUniform("angle", physicsBody.Rotation);
+        Shader.SetUniform("angle", PhysicsBody.Rotation);
         Shader.SetUniform("aspect", aspect);
         Shader.SetUniform("center", Ro.Center);
-        Shader.SetUniform("offset", physicsBody.Position);
+        Shader.SetUniform("offset", PhysicsBody.Position);
         Ro.Draw();
     }
 }
