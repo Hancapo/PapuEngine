@@ -14,13 +14,12 @@ namespace PapuEngine.source.entities;
 public sealed class AnimatedBackground : BaseEntity
 {
     private readonly Body _physicsBody;
-    private readonly RenderableObject _ro;
 
     public override Vector2D<float> UvOffset { get; set; }
 
     public override Body physicsBody => _physicsBody;
     
-    public override RenderableObject Ro => _ro;
+    public override RenderableObject Ro { get; set; }
     
     public AnimatedBackground(GL glContext, World physicsWorld, float aspect)
     {
@@ -29,11 +28,11 @@ public sealed class AnimatedBackground : BaseEntity
         IsVisible = true;
         Scale = 1.0f;
         GLContext = glContext;
-        Shader = ShaderManager.Get("basic_textured");
+        Shader = ShaderManager.Get("basic_anim_textured");
         Name = "Background";
         Scale = 1.0f;
         
-        _ro = new RenderableObject(
+        Ro = new RenderableObject(
             GLContext,
             GeomHelper.Create2DBox(2f),
             new Texture(
@@ -51,7 +50,6 @@ public sealed class AnimatedBackground : BaseEntity
 
     public override void Update(float deltaTime)
     {
-        //UvOffset = new Vector2D<float>(UvOffset.X, UvOffset.Y * deltaTime);
     }
     
     public override void Render(float deltaTime, float aspect)
@@ -64,8 +62,8 @@ public sealed class AnimatedBackground : BaseEntity
         Shader.SetUniform("aspect", Aspect);
         Shader.SetUniform("center", Ro.Center);
         Shader.SetUniform("offset", physicsBody.Position);
-        //Shader.SetUniform("iTime", deltaTime);
-        //Shader.SetUniform("iSpeed", 1.0f);
+        Shader.SetUniform("iTime", deltaTime);
+        Shader.SetUniform("iSpeed", .25f);
         Ro.Draw();
     }
 }
