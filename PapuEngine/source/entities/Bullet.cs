@@ -1,4 +1,5 @@
 ﻿using nkast.Aether.Physics2D.Common;
+using nkast.Aether.Physics2D.Common.PhysicsLogic;
 using nkast.Aether.Physics2D.Dynamics;
 using nkast.Aether.Physics2D.Dynamics.Contacts;
 using PapuEngine.source.core.@base;
@@ -12,10 +13,10 @@ namespace PapuEngine.source.entities;
 
 public sealed class Bullet : BaseEntity
 {
-    private const float BulletSpeed = 0.001f;
-    public Bullet(GL glContext, World phyicsWorld, float aspect, Player player)
+    private const float BulletSpeed = 2f;
+    public Bullet(GL glContext, World physicsWorld, float aspect, Player player)
     {
-        PhysicsWorld = phyicsWorld;
+        PhysicsWorld = physicsWorld;
         Aspect = aspect;
         IsVisible = true;
         Scale = 1.0f;
@@ -37,11 +38,10 @@ public sealed class Bullet : BaseEntity
         
         Ro.Initialize();
         PhysicsBody = PhysicsWorld.CreateRectangle(
-            width: 0.015f, height: 0.015f, density: 1f,
+            width: 0.015f, height: 0.015f, density: 0f,
             position: new Vector2(player.PhysicsBody.Position.X, player.PhysicsBody.Position.Y + 0.1f),
             rotation: 0, BodyType.Dynamic
         );
-        PhysicsBody.IgnoreGravity = true;
         PhysicsBody.OnCollision += OnBulletCollision;
     }
 
@@ -53,6 +53,7 @@ public sealed class Bullet : BaseEntity
 
     public override void Update(float deltaTime)
     {
+        PhysicsBody.LinearVelocity = new Vector2(0f, BulletSpeed);
 
     }
 
