@@ -9,13 +9,10 @@ namespace PapuEngine.source.graphics;
 public class Shader
 {
     private uint _programId;
-    private uint ProgramId => _programId;
-
     private GL _gl;
-
     private readonly Dictionary<string, int> _uniforms = new();
     
-    public Shader(string vertexPath, string fragmentPath, GL gl)
+    public Shader(GL gl, string vertexPath, string fragmentPath)
     {
         _gl = gl;
         var vs = _gl.CreateShader(ShaderType.VertexShader);
@@ -27,9 +24,9 @@ public class Shader
         _gl.CompileShader(fs);
 
         _programId = _gl.CreateProgram();
-        _gl.AttachShader(ProgramId, vs);
-        _gl.AttachShader(ProgramId, fs);
-        _gl.LinkProgram(ProgramId);
+        _gl.AttachShader(_programId, vs);
+        _gl.AttachShader(_programId, fs);
+        _gl.LinkProgram(_programId);
         _gl.DeleteShader(vs);
         _gl.DeleteShader(fs);
     }

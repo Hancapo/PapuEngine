@@ -5,59 +5,58 @@ using Texture = PapuEngine.source.graphics.Texture;
 
 namespace PapuEngine.source.core.components;
 
-public class RenderableObject(List<VertexData> vertices, Texture texture, GL gl, PrimitiveType pt = PrimitiveType.Triangles)
+public class RenderableObject
 {
     private uint _vbo;
     private uint _vao;
-    public List<VertexData> Vertices = vertices;
+    public List<VertexData> Vertices;
     private ReadOnlySpan<float> _vertices => Vertices.SelectMany(v => v.Flatten()).ToArray();
-    private bool _isInitilized;
-    private bool _rendered;
-    private Texture _texture = texture;
-    private PrimitiveType _primitiveType = pt;
+    public bool _isInitilized { get; set; }
+    private bool _rendered { get; set; }
+    private Texture _texture;
+    private PrimitiveType _primitiveType;
     private Vector2D<float> _center => new(Vertices.Average(p => p.Position.X), Vertices.Average(p => p.Position.Y));
     public Vector2D<float> Center => _center;
-    private GL _gl = gl;
+    private GL _gl;
 
-    public uint GetVbo()
+    public RenderableObject(GL gl, List<VertexData> vertices, Texture texture,
+        PrimitiveType pt = PrimitiveType.Triangles)
     {
-        return _vbo;
-    }
-    
-    public uint GetVao()
-    {
-        return _vao;
+        Vertices = vertices;
+        _texture = texture;
+        _primitiveType = pt;
+        _gl = gl;
     }
 
     public void Initialize()
     {
         //Load VBO
-        _vbo = gl.GenBuffers(1);
-        gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
-        gl.BufferData(GLEnum.ArrayBuffer, _vertices, GLEnum.StaticDraw);
-        
+        _vbo = _gl.GenBuffers(1);
+        _gl.BindBuffer(GLEnum.ArrayBuffer, _vbo);
+        _gl.BufferData(GLEnum.ArrayBuffer, _vertices, GLEnum.StaticDraw);
+
         //Load VAO
-        gl.GenVertexArrays(1, out _vao);
-        gl.BindVertexArray(_vao);
-        
+        _gl.GenVertexArrays(1, out _vao);
+        _gl.BindVertexArray(_vao);
+
         //Read vertices position
-        gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0); //Read first 3 floats as position.
-        gl.EnableVertexAttribArray(0);
-        
+        _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float),
+            0); //Read the first 3 floats as position.
+        _gl.EnableVertexAttribArray(0);
+
         //Read vertices UVs
-        gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
-        gl.EnableVertexAttribArray(1);
-        
+        _gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
+        _gl.EnableVertexAttribArray(1);
+
         _isInitilized = true;
     }
 
     public void Draw()
     {
-        if (!_isInitilized)
-            throw new Exception("Object not initialized");
+        if (!_isInitilized) Console.WriteLine("Renderable object not initialized");
         _texture.Bind();
-        gl.BindVertexArray(_vao);
-        gl.DrawArrays(_primitiveType, 0, (uint)Vertices.Count);
+        _gl.BindVertexArray(_vao);
+        _gl.DrawArrays(_primitiveType, 0, (uint)Vertices.Count);
         _rendered = true;
     }
 }
