@@ -13,14 +13,7 @@ namespace PapuEngine.source.entities;
 
 public sealed class AnimatedBackground : BaseEntity
 {
-    private readonly Body _physicsBody;
 
-    public override Vector2D<float> UvOffset { get; set; }
-
-    public override Body physicsBody => _physicsBody;
-    
-    public override RenderableObject Ro { get; set; }
-    
     public AnimatedBackground(GL glContext, World physicsWorld, float aspect)
     {
         PhysicsWorld = physicsWorld;
@@ -30,7 +23,6 @@ public sealed class AnimatedBackground : BaseEntity
         GLContext = glContext;
         Shader = ShaderManager.Get("basic_anim_textured");
         Name = "Background";
-        Scale = 1.0f;
         
         Ro = new RenderableObject(
             GLContext,
@@ -45,7 +37,7 @@ public sealed class AnimatedBackground : BaseEntity
             PrimitiveType.TriangleStrip
         );
 
-        _physicsBody = physicsWorld.CreateBody();
+        PhysicsBody = physicsWorld.CreateBody();
     }
 
     public override void Update(float deltaTime)
@@ -58,10 +50,10 @@ public sealed class AnimatedBackground : BaseEntity
         Aspect = aspect;
         Shader.Use();
         Shader.SetUniform("dist", Scale);
-        Shader.SetUniform("angle", physicsBody.Rotation);
+        Shader.SetUniform("angle", PhysicsBody.Rotation);
         Shader.SetUniform("aspect", Aspect);
         Shader.SetUniform("center", Ro.Center);
-        Shader.SetUniform("offset", physicsBody.Position);
+        Shader.SetUniform("offset", PhysicsBody.Position);
         Shader.SetUniform("iTime", deltaTime);
         Shader.SetUniform("iSpeed", .25f);
         Ro.Draw();
