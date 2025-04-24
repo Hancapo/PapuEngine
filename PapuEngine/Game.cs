@@ -59,6 +59,7 @@ public class Game
 
     private static void OnLoad()
     {
+        //_physicsWorld.Gravity = new PVector2(0f, 9.8f);
         _physicsWorld.Gravity = PVector2.Zero;
         input = window.CreateInput();
         _gl = window.CreateOpenGL();
@@ -74,7 +75,7 @@ public class Game
             ShaderManager.Load(shader.Item1, shader.Item2, shader.Item3, _gl);
         }
 
-        Player player1 = new(_gl, _physicsWorld, _aspect, kb = input.Keyboards.FirstOrDefault());
+        Player player1 = new(_gl, _physicsWorld, _aspect, input.Keyboards.FirstOrDefault(), ref _sceneEntities);
         AnimatedBackground bg = new(_gl, _physicsWorld, _aspect);
         _sceneEntities.Add(bg);
         _sceneEntities.Add(player1);
@@ -97,6 +98,18 @@ public class Game
         Player? playerEnt = _sceneEntities.FirstOrDefault(e => e is Player) as Player;
         var kb = input.Keyboards.FirstOrDefault();
         playerEnt?.Update(fDeltaTime);
+        var allBullets = _sceneEntities.OfType<Bullet>().ToList();
+        if (allBullets.Count > 0)
+        {
+            foreach (var bullet in allBullets)
+            {
+                bullet.Update((float)window.Time);
+                if (bullet.PhysicsBody.Position.Y > 3f)
+                {
+                    _sceneEntities.Remove(bullet);
+                }
+            }
+        }
 
     }
 
@@ -119,11 +132,11 @@ public class Game
                 if (ImGui.CollapsingHeader(ent.Name))
                 {
                     ImGui.Spacing();
-                    Vector2 pos = new Vector2(ent.physicsBody.Position.X, ent.physicsBody.Position.Y);
-                    float rot = ent.physicsBody.Rotation * (180f / MathF.PI);
+                    Vector2 pos = new Vector2(ent.PhysicsBody.Position.X, ent.PhysicsBody.Position.Y);
+                    float rot = ent.PhysicsBody.Rotation * (180f / MathF.PI);
                     if (ImGui.InputFloat2("Position", ref pos))
                     {
-                        ent.physicsBody.Position = new PVector2(pos.X, pos.Y);
+                        ent.PhysicsBody.Position = new PVector2(pos.X, pos.Y);
                     }
 
                     ImGui.BeginDisabled();
@@ -137,11 +150,15 @@ public class Game
                     }
                     if (ImGui.InputFloat("Rotation", ref rot))
                     {
-                        ent.physicsBody.Rotation = rot * (MathF.PI / 180f);
+                        ent.PhysicsBody.Rotation = rot * (MathF.PI / 180f);
                     }
-                    
-                    if(ent is Player player)
+
+                    if (ent is Player player)
+                    {
                         ImGui.InputFloat("Speed", ref player.Speed, 0.0f, 100f);
+                        ImGui.InputFloat("Bullet Cooldown", ref player.BulletCooldown, 0.0f, 100f);
+
+                    }
                     float s = ent.Scale;
                     if (ImGui.InputFloat("Scale", ref s))
                     {
