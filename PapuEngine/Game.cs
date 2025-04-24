@@ -131,7 +131,10 @@ public class Game
                     ImGui.Checkbox("Active", ref a);
                     ImGui.EndDisabled();
                     bool v = ent.IsVisible;
-                    ImGui.Checkbox("Visible", ref v);
+                    if (ImGui.Checkbox("Visible", ref v))
+                    {
+                        ent.IsVisible = v;
+                    }
                     if (ImGui.InputFloat("Rotation", ref rot))
                     {
                         ent.physicsBody.Rotation = rot * (MathF.PI / 180f);
@@ -139,8 +142,11 @@ public class Game
                     
                     if(ent is Player player)
                         ImGui.InputFloat("Speed", ref player.Speed, 0.0f, 100f);
-                    var scale = ent.Scale;
-                    ImGui.InputFloat("Scale", ref scale);
+                    float s = ent.Scale;
+                    if (ImGui.InputFloat("Scale", ref s))
+                    {
+                        ent.Scale = s;
+                    }
                     if (ImGui.Button("Destroy")) _sceneEntities[i].IsActive = false;
                     ImGui.Spacing();
                 }
