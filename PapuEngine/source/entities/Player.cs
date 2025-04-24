@@ -18,8 +18,8 @@ public sealed class Player : BaseEntity
     
     private readonly Body _physicsBody;
     private readonly RenderableObject _ro;
-    public float _aspect;
     public IKeyboard _kb;
+    public bool _isvisible;
     private bool _canPressSpace = true;
     private float _cooldownTimer = 0f;
     
@@ -27,11 +27,7 @@ public sealed class Player : BaseEntity
     public override Shader Shader => ShaderManager.Get("basic_textured");
     public override string Name => "Player1";
     public override Body physicsBody => _physicsBody;
-
-    public new bool IsVisible { get; set; } = true;
     public override RenderableObject Ro => _ro;
-
-    public override float Aspect => _aspect;
 
     public Vector2D<float> Vel = Vector2D<float>.Zero;
 
@@ -76,8 +72,10 @@ public sealed class Player : BaseEntity
     public Player(GL glContext, World physicsWorld, float aspect, IKeyboard kb)
     {
         PhysicsWorld = physicsWorld;
-        _aspect = aspect;
+        Aspect = aspect;
         _kb = kb;
+        IsVisible = true;
+        Scale = 1.0f;
         GLContext = glContext;
         _physicsBody = PhysicsWorld.CreateRectangle(
             width: 0.1f, height: 0.1f, density: 1f,
@@ -99,6 +97,7 @@ public sealed class Player : BaseEntity
     public override void Render(float deltaTime, float aspect)
     {
         if (!IsVisible) return;
+        Aspect = aspect;
         Shader.Use();
         Shader.SetUniform("dist", Scale);
         Shader.SetUniform("angle", physicsBody.Rotation);
