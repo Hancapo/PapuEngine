@@ -21,7 +21,7 @@ public abstract class Game
     private static IInputContext? _input;
     private static ImGuiController _imGui;
     private static IKeyboard? _kb;
-    public static GL _gl;
+    private static GL _gl;
     private static List<BaseEntity> _sceneEntities = [];
 
     private static float _aspect = 0f;
@@ -94,6 +94,7 @@ public abstract class Game
         var fDeltaTime = (float)deltaTime;
         _imGui.Update(fDeltaTime);
         _physicsWorld.Step(fDeltaTime);
+        CleanUnactiveEntities(_sceneEntities);
         Player? playerEnt = _sceneEntities.FirstOrDefault(e => e is Player) as Player;
         playerEnt?.Update(fDeltaTime);
         var allBullets = _sceneEntities.OfType<Bullet>().ToList();
@@ -102,9 +103,9 @@ public abstract class Game
             foreach (var bullet in allBullets)
             {
                 bullet.Update((float)_window.Time);
-                if (bullet.PhysicsBody.Position.Y > 3f)
+                if (bullet.PhysicsBody.Position.Y > 2f)
                 {
-                    _sceneEntities.Remove(bullet);
+                    bullet.IsActive = false;
                 }
             }
         }
@@ -114,7 +115,6 @@ public abstract class Game
     private static void OnRenderFrame(double d)
     {
         _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
         foreach (var ent in _sceneEntities)
         {
             ent.Render((float)_window.Time, _aspect);
@@ -169,7 +169,6 @@ public abstract class Game
                 ImGui.PopID();
             }
         }
-        CleanUnactiveEntities(_sceneEntities);
         ImGui.End();
         _imGui.Render();
     }
