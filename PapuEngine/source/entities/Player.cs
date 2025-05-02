@@ -16,7 +16,7 @@ namespace PapuEngine.source.entities;
 
 public sealed class Player : BaseEntity
 {
-    private IKeyboard _kb;
+    private IKeyboard? _kb;
     private bool _canPressSpace = true;
     private float _cooldownTimer = 0f;
     private List<BaseEntity> _entities;
@@ -35,7 +35,6 @@ public sealed class Player : BaseEntity
             if (_cooldownTimer <= 0f)
                 _canPressSpace = true;
         }
-        
         
         var v = new PhyVector2(_vel.X, _vel.Y);
         
@@ -67,7 +66,7 @@ public sealed class Player : BaseEntity
         }
     }
 
-    public Player(GL glContext, World physicsWorld, float aspect, IKeyboard kb, ref List<BaseEntity> entities)
+    public Player(GL glContext, World physicsWorld, float aspect, IKeyboard? kb, ref List<BaseEntity> entities)
     {
         PhysicsWorld = physicsWorld;
         Aspect = aspect;

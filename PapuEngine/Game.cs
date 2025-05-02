@@ -15,12 +15,12 @@ using Window = Silk.NET.Windowing.Window;
 
 namespace PapuEngine;
 
-public class Game
+public abstract class Game
 {
-    private static IWindow window;
-    private static IInputContext input;
-    private static ImGuiController imGui;
-    private static IKeyboard? kb;
+    private static IWindow _window;
+    private static IInputContext? _input;
+    private static ImGuiController _imGui;
+    private static IKeyboard? _kb;
     public static GL _gl;
     private static List<BaseEntity> _sceneEntities = [];
 
@@ -28,11 +28,11 @@ public class Game
 
     private static World _physicsWorld = new();
 
-    private static string shadersPath = "assets/shaders/";
+    private static string _shadersPath = "assets/shaders/";
     private static readonly List<(string, string, string)> ShaderList =
     [
-        ("basic_textured", $"{shadersPath}basic_tex.vert", $"{shadersPath}basic_tex.frag"),
-        ("basic_anim_textured", $"{shadersPath}basic_tex.vert", $"{shadersPath}basic_uv_anim.frag")
+        ("basic_textured", $"{_shadersPath}basic_tex.vert", $"{_shadersPath}basic_tex.frag"),
+        ("basic_anim_textured", $"{_shadersPath}basic_tex.vert", $"{_shadersPath}basic_uv_anim.frag")
     ];
 
     public static void Main()
@@ -40,15 +40,15 @@ public class Game
         var options = WindowOptions.Default;
         options.Title = "PapuEngine 2D";
         options.Size = new Vector2D<int>(1920, 1080);
-        window = Window.Create(options);
+        _window = Window.Create(options);
         
-        window.Load += OnLoad;
-        window.Update += OnUpdateFrame;
-        window.Render += OnRenderFrame;
-        window.Resize += OnResize;
-        window.Closing += OnClosing;
+        _window.Load += OnLoad;
+        _window.Update += OnUpdateFrame;
+        _window.Render += OnRenderFrame;
+        _window.Resize += OnResize;
+        _window.Closing += OnClosing;
 
-        window.Run();
+        _window.Run();
     }
     
     private static void CleanUnactiveEntities(List<BaseEntity> entities)
@@ -59,23 +59,22 @@ public class Game
 
     private static void OnLoad()
     {
-        //_physicsWorld.Gravity = new PVector2(0f, 9.8f);
         _physicsWorld.Gravity = PVector2.Zero;
-        input = window.CreateInput();
-        _gl = window.CreateOpenGL();
-        imGui = new ImGuiController(_gl, window, input);
+        _input = _window.CreateInput();
+        _gl = _window.CreateOpenGL();
+        _imGui = new ImGuiController(_gl, _window, _input);
 
         ImGui.StyleColorsClassic();
 
         _gl.ClearColor(Color.Aquamarine);
-        _aspect = (uint)window.Size.X / (float)(uint)window.Size.Y;
+        _aspect = (uint)_window.Size.X / (float)(uint)_window.Size.Y;
 
         foreach (var shader in ShaderList)
         {
             ShaderManager.Load(shader.Item1, shader.Item2, shader.Item3, _gl);
         }
 
-        Player player1 = new(_gl, _physicsWorld, _aspect, input.Keyboards.FirstOrDefault(), ref _sceneEntities);
+        Player player1 = new(_gl, _physicsWorld, _aspect, _input.Keyboards.FirstOrDefault(), ref _sceneEntities);
         AnimatedBackground bg = new(_gl, _physicsWorld, _aspect);
         _sceneEntities.Add(bg);
         _sceneEntities.Add(player1);
@@ -85,25 +84,24 @@ public class Game
 
     private static void OnResize(Vector2D<int> obj)
     {
-        _gl.Viewport(0, 0, (uint)window.Size.X, (uint)window.Size.Y);
-        _aspect = window.Size.X / (float)window.Size.Y;
+        _gl.Viewport(0, 0, (uint)_window.Size.X, (uint)_window.Size.Y);
+        _aspect = _window.Size.X / (float)_window.Size.Y;
     }
 
 
     private static void OnUpdateFrame(double deltaTime)
     {
         var fDeltaTime = (float)deltaTime;
-        imGui.Update(fDeltaTime);
+        _imGui.Update(fDeltaTime);
         _physicsWorld.Step(fDeltaTime);
         Player? playerEnt = _sceneEntities.FirstOrDefault(e => e is Player) as Player;
-        var kb = input.Keyboards.FirstOrDefault();
         playerEnt?.Update(fDeltaTime);
         var allBullets = _sceneEntities.OfType<Bullet>().ToList();
         if (allBullets.Count > 0)
         {
             foreach (var bullet in allBullets)
             {
-                bullet.Update((float)window.Time);
+                bullet.Update((float)_window.Time);
                 if (bullet.PhysicsBody.Position.Y > 3f)
                 {
                     _sceneEntities.Remove(bullet);
@@ -119,7 +117,7 @@ public class Game
 
         foreach (var ent in _sceneEntities)
         {
-            ent.Render((float)window.Time, _aspect);
+            ent.Render((float)_window.Time, _aspect);
         }
 
         if (ImGui.CollapsingHeader("Entities"))
@@ -173,7 +171,7 @@ public class Game
         }
         CleanUnactiveEntities(_sceneEntities);
         ImGui.End();
-        imGui.Render();
+        _imGui.Render();
     }
 
     private static void OnClosing()
